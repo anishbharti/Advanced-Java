@@ -1864,7 +1864,7 @@ ReadRegistration.java
 <meta charset="UTF-8">
 </head>
 <body>
-	<a href="registrationController">Create registration</a>
+	<a href="registrationController">Create registration</a>                   //anchor tag (href attribute is used to map url to servlet)
 	<a href="readRegistration">List registration</a>
 </body>
 </html>
@@ -2970,6 +2970,7 @@ JSP Life Cycle
 -> The first method of servlet will execute is init() method. This method will execute only once
 -> Service method(doGet, doPost) these can execute any number of times
 -> When destroy method of the servlet executes, that means servlet life cycle has come to an end
+
 
 
 
