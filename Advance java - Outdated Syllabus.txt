@@ -2746,7 +2746,7 @@ public class RegistrationController extends HttpServlet {
 
 
 ================================================================================
-++++++[ session.setMaxInactiveInterval(10)
+++++++[ session.setMaxInactiveInterval(10)  ]]]]]]]]]]]]]]]]]]]]]]]-------------------------------------------------------------------------------
 ###########################
 Project - ebs - Iteration 8   How to handle the session NullPointerException when we are adding in the time interval.
 ###########################
@@ -2814,36 +2814,53 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-import com.ems.model.DBServiceImpl;
+import com.ems.model.DAOServiceImpl;
+
 @WebServlet("/login")
 public class LoginController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-    public LoginController() {
-        super();
-    }
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+	public LoginController() {
+		super();
 	}
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		String email = request.getParameter("email");
 		String password = request.getParameter("password");
-		
-		DBServiceImpl service = new DBServiceImpl();
+
+		DAOServiceImpl service = new DAOServiceImpl();
 		service.connectDB();
+
 		boolean status = service.verifyLogin(email, password);
-		if(status) {
-			 HttpSession session= request.getSession(true);   // user already exists then use the data in session server or not exist then create a new object of HttpSession
-		     session.setAttribute("email",email);    // storing the session data email in the session object in the server
-		       // it can store 1000 user with uniques session id but we passed email then session id will be email 
-			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/registration.jsp");
-			rd.forward(request, response);
-		}else {
-			//Error Message
-			request.setAttribute("error", "Invalid email/password");
+		try {
+			if (status) {
+				HttpSession session = request.getSession(true); // user already exists then use the data in session
+																// server
+				session.setMaxInactiveInterval(10); // or not exist then create a new object of HttpSession
+				session.setAttribute("email", email); // storing the session data email in the session object in the
+														// server
+				// it can store 1000 user with uniques session id but we passed email then
+				// session id will be email
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/Register.jsp");
+				rd.forward(request, response);
+			} else {
+				request.setAttribute("error", "Invalid Login credential");
+
+				RequestDispatcher rd = request.getRequestDispatcher("index.jsp");
+				rd.forward(request, response);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 			RequestDispatcher rd = request.getRequestDispatcher("index.jsp");
 			rd.forward(request, response);
 		}
-	}
 
+	}
 }
 
 RegistrationController.java
@@ -2859,48 +2876,118 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.sql.ResultSet;
+import com.ems.model.DAOServiceImpl;
 
-import com.ems.model.DBServiceImpl;
-
-@WebServlet("/registrationController")
-public class RegistrationController extends HttpServlet {
+@WebServlet("/register")
+public class RegisterController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-    public RegistrationController() {
-        super();
-    }
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/registration.jsp");
-		rd.forward(request, response);
-	
+
+	public RegisterController() {
+		super();
 	}
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		HttpSession session = request.getSession(false);
 
-		if (session.getAttribute("email") != null) {
-			String name = request.getParameter("name");
-			String email = request.getParameter("email");
-			String mobile = request.getParameter("mobile");
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/Register.jsp");
+		rd.forward(request, response);
 
-			DAOServiceImpl service = new DAOServiceImpl();
-			service.connectDB();
-			service.saveRecord(name, email, mobile);
+	}
 
-			request.setAttribute("msg", "Saved!");
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+			HttpSession session = request.getSession(false);
+			session.setMaxInactiveInterval(10);
 
-			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/Register.jsp");
-			rd.forward(request, response);
-		} else {
+			if (session.getAttribute("email") != null) {
+				String name = request.getParameter("name");
+				String email = request.getParameter("email");
+				String mobile = request.getParameter("mobile");
+
+				DAOServiceImpl service = new DAOServiceImpl();
+				service.connectDB();
+				service.saveRecord(name, email, mobile);
+
+				request.setAttribute("msg", "Saved!");
+
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/Register.jsp");
+				rd.forward(request, response);
+			} else {
+				RequestDispatcher rd = request.getRequestDispatcher("index.jsp");
+				rd.forward(request, response);
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
 			RequestDispatcher rd = request.getRequestDispatcher("index.jsp");
 			rd.forward(request, response);
 
 		}
-	    
-	}
 
 	}
 
 }
+
+ListRegistrationController.java
+-----------------------------------------------------------------------------------------------------------------------------
+
+package com.ems.controller;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import java.io.IOException;
+
+import com.ems.model.DAOServiceImpl;
+import com.mysql.cj.protocol.Resultset;
+import java.sql.*;
+
+@WebServlet("/list")
+public class ListRegistrationController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	public ListRegistrationController() {
+		super();
+	}
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		try {
+			HttpSession session = request.getSession(false);
+			session.setMaxInactiveInterval(10);
+			if (session.getAttribute("email") != null) {
+
+				DAOServiceImpl service = new DAOServiceImpl();
+				service.connectDB();
+				Resultset result = (Resultset) service.getRegistration();
+
+				request.setAttribute("result", result);
+				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/list_registration.jsp");
+				rd.forward(request, response);
+			} else {
+				RequestDispatcher rd = request.getRequestDispatcher("index.jsp");
+				rd.forward(request, response);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			RequestDispatcher rd = request.getRequestDispatcher("index.jsp");
+			rd.forward(request, response);
+		}
+
+	}s
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+	}
+
+}
+
 #############################
 Servlet Life Cycle
 #############################
@@ -2948,6 +3035,7 @@ JSP Life Cycle
 -> The first method of servlet will execute is init() method. This method will execute only once
 -> Service method(doGet, doPost) these can execute any number of times
 -> When destroy method of the servlet executes, that means servlet life cycle has come to an end
+
 
 
 
