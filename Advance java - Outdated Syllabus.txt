@@ -1854,7 +1854,7 @@ public class ReadRegistration extends HttpServlet {
 }
 
 ReadRegistration.java
------------------------
+-----------------------------------------------------------------------------------------------------------------
 
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
@@ -1870,7 +1870,7 @@ ReadRegistration.java
 </html>
 
 menu.jsp
---------
+---------------------------------------------------------------------------------------------
 
 package com.ems.controller;
 
@@ -1992,7 +1992,7 @@ RegistrationController.java - Add code to doGet() method
 </html>
 
 list_registrations.jsp
-----------------------
+----------------------------------------------------------------------------------------
 
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
@@ -2024,82 +2024,55 @@ list_registrations.jsp
 </html>
 
 registration.jsp
----------------
+----------------------------------------------------------
 
 ######################
 Project - ems - Iteration 5
 #########################
 
-Update list_registrations.jsp
+Update list_registrations.jsp for delete single row data
 ----------------------------------
 <%@page import="java.sql.ResultSet"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ include file="menu.jsp" %>
+ <%@ include file="menu.jsp" %>      
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>list</title>
+<title>List Registration</title>
 </head>
 <body>
+
+	<h2>All Registration</h2>
 	<table>
-		<tr>
-			<th>
-				Id
-			</th>
-			<th>
-				Name
-			</th>
-			<th>
-				Course
-			</th>
-			<th>
-				Email
-			</th>
-			<th>
-				Mobile
-			</th>
-			<th>
-				Delete
-			</th>
-		</tr>
-		
+	  <tr>
+		<th>Name</th>
+		<th>Email</th>
+		<th>Mobile</th>
+		<th>Action</th>
+	  </tr>
 		<%
-			ResultSet result =(ResultSet)request.getAttribute("registrations");
-			while(result.next()){%>
-			<tr>
-			<td>
-				<%=result.getInt(1)%>
-			</td>
-			<td>
-				<%=result.getString(2)%>
-			</td>
-			<td>
-				<%=result.getString(3)%>
-			</td>
-			<td>
-				<%=result.getString(4)%>
-			</td>
-			<td>
-				<%=result.getString(5)%>
-			</td>
-			<td>
-				<a href="deleteReg?email=<%=result.getString(4)%>">delete</a>
-			</td>
+            ResultSet result=(ResultSet)request.getAttribute("result");
+          while(result.next()){
+          %>
+		<tr>
+			<td><%=result.getString(1) %></td>
+			<td><%=result.getString(2) %></td>
+			<td><%=result.getString(3) %></td>
+			<td><a href="delete?email=<%= result.getString(2)%>">delete</a></td>
 		</tr>
-			
-				
-		<%} %>	
-		
-		
-		
+		<%}%>
+
 	</table>
+
 </body>
 </html>
 
 Developed DeleteController.java
 ---------------------------------
+
+package com.ems.controller;
 
 package com.ems.controller;
 
@@ -2109,51 +2082,36 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
 import java.io.IOException;
 import java.sql.ResultSet;
 
-import com.ems.model.DBServiceImpl;
-@WebServlet("/deleteReg")
-public class DeleteController extends HttpServlet {
+import com.ems.model.DAOServiceImpl;
+
+@WebServlet("/delete")
+public class DeleteRegistrationController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-    public DeleteController() {
+       
+    public DeleteRegistrationController() {
         super();
     }
+
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try {
-			String email = request.getParameter("email");
-			DBServiceImpl service = new DBServiceImpl();
-			service.connectDB();
-			service.deleteRegistration(email);
-			
-			HttpSession session = request.getSession(false);
-			String sessionEmail = (String)session.getAttribute("email");
-			
-			ResultSet result = service.getUserByEmail(sessionEmail);
-			
-			int userId = 0;
-			if(result.next()) {
-				userId = result.getInt(1);
-			}
-			
-			ResultSet registrations = service.getRegistrationsByUser(userId);
-			request.setAttribute("registrations", registrations);
-			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/list_registrations.jsp");
-			rd.forward(request, response);
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
+	    String email=request.getParameter("email");
+		DAOServiceImpl service=new DAOServiceImpl();
+		service.connectDB();
+	    service.deleteRegistration(email);
+	    
+	    ResultSet result=service.getRegistration();
+	    request.setAttribute("result", result);
+	    RequestDispatcher rd= request.getRequestDispatcher("/WEB-INF/views/list_registration.jsp");
+	    rd.forward(request, response);
 	}
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	}
 
 }
-
+====================================================================================================================
 Updated DBService.java
 ---------------
 package com.ems.model;
@@ -2254,77 +2212,45 @@ Update list_registrations.jsp
 <%@page import="java.sql.ResultSet"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
-<%@ include file="menu.jsp" %>
+  <%@ include file="menu.jsp" %>    
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>list</title>
+<title>List Registration</title>
 </head>
 <body>
+
+	<h2>All Registration</h2>
 	<table>
-		<tr>
-			<th>
-				Id
-			</th>
-			<th>
-				Name
-			</th>
-			<th>
-				Course
-			</th>
-			<th>
-				Email
-			</th>
-			<th>
-				Mobile
-			</th>
-			<th>
-				Delete
-			</th>
-			<th>
-				update
-			</th>
-		</tr>
-		
+	  <tr>
+		<th>Name</th>
+		<th>Email</th>
+		<th>Mobile</th>
+		<th>Delete</th>
+		<th>Update</th>
+	  </tr>
 		<%
-			ResultSet result =(ResultSet)request.getAttribute("registrations");
-			while(result.next()){%>
-			<tr>
-			<td>
-				<%=result.getInt(1)%>
-			</td>
-			<td>
-				<%=result.getString(2)%>
-			</td>
-			<td>
-				<%=result.getString(3)%>
-			</td>
-			<td>
-				<%=result.getString(4)%>
-			</td>
-			<td>
-				<%=result.getString(5)%>
-			</td>
-			<td>
-				<a href="deleteReg?email=<%=result.getString(4)%>">delete</a>
-			</td>
-			<td>
-				<a href="updateReg?id=<%=result.getString(1)%>">update</a>
-			</td>
-		</tr>
+            ResultSet result=(ResultSet)request.getAttribute("result");
+          while(result.next()){
+          %>
+		<tr>
+			<td><%=result.getString(1) %></td>
+			<td><%=result.getString(2) %></td>
+			<td><%=result.getString(3) %></td>
+			<td><a href="delete?email=<%= result.getString(2)%>">delete</a></td>
+		    <td><a href="update?email=<%= result.getString(2)%>&mobile=<%= result.getString(3)%>">update</a></td>
 			
-				
-		<%} %>	
-		
-		
-		
+		</tr>
+		<%}%>
+
 	</table>
+
 </body>
 </html>
 
 Create UpdateController.java
-------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------
 package com.ems.controller;
 
 import jakarta.servlet.RequestDispatcher;
@@ -2336,51 +2262,35 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.ResultSet;
 
-import com.ems.model.DBServiceImpl;
+import com.ems.model.DAOServiceImpl;
 
-@WebServlet("/updateReg")
+@WebServlet("/update")
 public class UpdateRegistrationController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+       
     public UpdateRegistrationController() {
         super();
     }
+
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-			try {
-				int id = Integer.parseInt(request.getParameter("id"));
-				DBServiceImpl service = new DBServiceImpl();
-				service.connectDB();
-				ResultSet result = service.getRegistrationById(id);
-				int registrationId=0;
-				String name=null;
-				String course=null;
-				String email=null;
-				String mobile=null;
-				if(result.next()) {
-					registrationId = result.getInt(1);
-					name = result.getString(2);
-					course = result.getString(3);
-					email = result.getString(4);
-					mobile = result.getString(5);
-				}
-				
-				request.setAttribute("id", registrationId);
-				request.setAttribute("name", name);
-				request.setAttribute("course", course);
-				request.setAttribute("email", email);
-				request.setAttribute("mobile", mobile);
-				
-				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/update_registration.jsp");
-				rd.forward(request, response);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
+	  String email= request.getParameter("email");
+	  String mobile= request.getParameter("mobile");
+	  
+	  request.setAttribute("email", email);
+	  request.setAttribute("mobile", mobile);
+	  RequestDispatcher rd= request.getRequestDispatcher("/WEB-INF/views/update_registration.jsp");
+	  rd.forward(request, response);
+	  
+	  
+	  
 	}
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
 	}
 
 }
+
 
 DBService.java
 ---------------
@@ -2388,99 +2298,87 @@ package com.ems.model;
 
 import java.sql.ResultSet;
 
-public interface DBService {
-	public void connectDB();//->Connecting to database
-	public boolean verifyLogin(String email, String password);
-	public ResultSet getUserByEmail(String email);
-	public void createRegistration(String name, String course, String emailId, String mobile, int userId);
-	public ResultSet getRegistrationsByUser(int userId);
-	public void deleteRegistration(String email);
-	public ResultSet getRegistrationById(int id);
+public interface DAOService {
 
+	public void connectDB();
+	public boolean verifyLogin(String email,String password);
+	public void saveRecord(String name,String email,String mobile); 
+	public ResultSet getRegistration();
+	public void deleteRegistration(String email);
+	public void updateRegistration(String email, String mobile);
 }
 
-DBServiceImpl.java
-------------------
-package com.ems.model;
-import java.sql.*;
-public class DBServiceImpl implements DBService {
-	
-	private Connection con;
-	private Statement stmnt;
-	
 
+DBServiceImpl.java
+-----------------------------------------------------------------------
+package com.ems.model;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DAOServiceImpl implements DAOService {
+
+	 private Connection con;
+	 private Statement statement;
 	@Override
 	public void connectDB() {
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/emsdb","root","test");
-			stmnt = con.createStatement();
-		
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+     try {
+    	    Class.forName("com.mysql.cj.jdbc.Driver");
+		con=DriverManager.getConnection("jdbc:mysql://localhost:3306/ems_sep_db","root","test");
+	    statement=con.createStatement();
+	} catch (Exception e) {
+            e.printStackTrace();
+	}
 	}
 
 	@Override
 	public boolean verifyLogin(String email, String password) {
 		try {
-		 ResultSet result = stmnt.executeQuery("select * from user where email='"+email+"' and password='"+password+"'");
-		 return result.next();
+			ResultSet result= statement.executeQuery("Select * from login where email='"+email+"' and password='"+password+"'");
+			return result.next();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return false;
+        return false;
 	}
 
 	@Override
-	public ResultSet getUserByEmail(String email) {
-		try {
-			 ResultSet result = stmnt.executeQuery("select * from user where email='"+email+"'");
-			 
-			 return result;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-	}
-
-	public void createRegistration(String name, String course, String emailId, String mobile, int userId) {
-		try {
-			stmnt.executeUpdate("INSERT INTO registration (name, course, email, mobile, user_id) VALUES ('"+name+"', '"+course+"', '"+emailId+"', '"+mobile+"', '"+userId+"')");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+	public void saveRecord(String name, String email, String mobile) {
+       try {
+		statement.executeUpdate("insert into registration values('"+name+"','"+email+"','"+mobile+"')");
+	} catch (Exception e) {
+       e.printStackTrace();
+	}		
 	}
 
 	@Override
-	public ResultSet getRegistrationsByUser(int userId) {
+	public ResultSet getRegistration() {
 		try {
-			 ResultSet result = stmnt.executeQuery("select * from registration where user_id='"+userId+"'");
-			 
-			 return result;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
+			ResultSet result=statement.executeQuery("select * from registration");
+			return result;
+		} catch (Exception e) {
+             e.printStackTrace();
+		}
+		return null;
 	}
 
 	public void deleteRegistration(String email) {
-		try {
-			stmnt.executeUpdate("Delete from registration where email='"+email+"'");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+       try {
+		statement.executeUpdate("delete from registration where email='"+email+"'");
+	   } catch (SQLException e) {
+		e.printStackTrace();
+	   }		
 	}
 
-	@Override
-	public ResultSet getRegistrationById(int id) {
+	public void updateRegistration(String email, String mobile) {
 		try {
-			ResultSet result = stmnt.executeQuery("select * from registration where id='"+id+"'");
-			return result;	
+			statement.executeUpdate("update registration set mobile='"+mobile+"' where email='"+email+"'");
 		} catch (Exception e) {
-				e.printStackTrace();
-			}
-		return null;
+           e.printStackTrace();
+		}
 	}
 
 }
@@ -2501,12 +2399,9 @@ Create Update_registration.jsp
 	<h2>Update Registration here....</h2>
 	<form action="" method="post">
 		<pre>
-			<input type="hidden" name="id" value="<%=request.getAttribute("id")%>" readonly/> 
-			Name <input type="text" name="name" value="<%=request.getAttribute("name")%>"/>
-			Course <input type="text" name="course" value="<%=request.getAttribute("course")%>"/>
-			Email <input type="text" name="email" value="<%=request.getAttribute("email")%>"/>
-			Mobile <input type="text" name="mobile" value="<%=request.getAttribute("mobile")%>"/>
-			<input type="submit" value="update"/>
+			Email:<input type="text" name="email" value="<%=request.getAttribute("email")%>"/>
+           Mobile:<input type="text" name="mobile" value="<%=request.getAttribute("mobile") %>"/>
+           <input type="submit" value="updated"/>
 		</pre>
 	</form>
 	
@@ -2534,14 +2429,11 @@ update_registration.jsp
 </head>
 <body>
 	<h2>Update Registration here....</h2>
-	<form action="updateReg" method="post">
+	<form action="update" method="post">
 		<pre>
-			<input type="hidden" name="id" value="<%=request.getAttribute("id")%>" readonly/> 
-			Name <input type="text" name="name" value="<%=request.getAttribute("name")%>"/>
-			Course <input type="text" name="course" value="<%=request.getAttribute("course")%>"/>
-			Email <input type="text" name="email" value="<%=request.getAttribute("email")%>"/>
-			Mobile <input type="text" name="mobile" value="<%=request.getAttribute("mobile")%>"/>
-			<input type="submit" value="update"/>
+			Email:<input type="text" name="email" value="<%=request.getAttribute("email")%>"/>
+           Mobile:<input type="text" name="mobile" value="<%=request.getAttribute("mobile") %>"/>
+           <input type="submit" value="updated"/>
 		</pre>
 	</form>
 	
@@ -2577,71 +2469,27 @@ public class UpdateRegistrationController extends HttpServlet {
         super();
     }
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-			try {
-				int id = Integer.parseInt(request.getParameter("id"));
-				DBServiceImpl service = new DBServiceImpl();
-				service.connectDB();
-				ResultSet result = service.getRegistrationById(id);
-				int registrationId=0;
-				String name=null;
-				String course=null;
-				String email=null;
-				String mobile=null;
-				if(result.next()) {
-					registrationId = result.getInt(1);
-					name = result.getString(2);
-					course = result.getString(3);
-					email = result.getString(4);
-					mobile = result.getString(5);
-				}
-				
-				request.setAttribute("id", registrationId);
-				request.setAttribute("name", name);
-				request.setAttribute("course", course);
-				request.setAttribute("email", email);
-				request.setAttribute("mobile", mobile);
-				
-				RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/update_registration.jsp");
-				rd.forward(request, response);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			String email= request.getParameter("email");
+	  String mobile= request.getParameter("mobile");
+	  
+	  request.setAttribute("email", email);
+	  request.setAttribute("mobile", mobile);
+	  RequestDispatcher rd= request.getRequestDispatcher("/WEB-INF/views/update_registration.jsp");
+	  rd.forward(request, response);
 			
 	}
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		try {
-			HttpSession session = request.getSession(false);
-			String email = (String)session.getAttribute("email");
-			
-			
-					
-			int id = Integer.parseInt(request.getParameter("id"));
-			String name = request.getParameter("name");
-			String course = request.getParameter("course");
-			String emailId = request.getParameter("email");
-			String mobile = request.getParameter("mobile");
-			
-			DBServiceImpl service  = new DBServiceImpl();
-			service.connectDB();
-			service.updateRegistration(id,name,course,emailId,mobile);
-			
-			ResultSet result = service.getUserByEmail(email);
-			
-			int userId = 0;
-			if(result.next()) {
-				userId = result.getInt(1);
-			}
-			
-			ResultSet registrations = service.getRegistrationsByUser(userId);
-			request.setAttribute("registrations", registrations);
-			RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/list_registrations.jsp");
-			rd.forward(request, response);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
+		String email= request.getParameter("email");
+		  String mobile= request.getParameter("mobile");
+		  
+		  DAOServiceImpl service=new DAOServiceImpl();
+		  service.connectDB();
+		  service.updateRegistration(email,mobile);
+		  
+		  ResultSet result=service.getRegistration();
+		  request.setAttribute("result", result);
+		  RequestDispatcher rd=request.getRequestDispatcher("/WEB-INF/views/list_registration.jsp");
+		  rd.forward(request, response);
 	
 	}
 
@@ -2668,96 +2516,77 @@ public interface DBService {
 DBServiceImpl.java
 ---------------------
 package com.ems.model;
-import java.sql.*;
-public class DBServiceImpl implements DBService {
-	
-	private Connection con;
-	private Statement stmnt;
-	
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DAOServiceImpl implements DAOService {
+
+	 private Connection con;
+	 private Statement statement;
 	@Override
 	public void connectDB() {
-		try {
-			Class.forName("com.mysql.cj.jdbc.Driver");
-			con = DriverManager.getConnection("jdbc:mysql://localhost:3306/emsdb","root","test");
-			stmnt = con.createStatement();
-		
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+     try {
+    	    Class.forName("com.mysql.cj.jdbc.Driver");
+		con=DriverManager.getConnection("jdbc:mysql://localhost:3306/ems_sep_db","root","test");
+	    statement=con.createStatement();
+	} catch (Exception e) {
+            e.printStackTrace();
+	}
 	}
 
 	@Override
 	public boolean verifyLogin(String email, String password) {
 		try {
-		 ResultSet result = stmnt.executeQuery("select * from user where email='"+email+"' and password='"+password+"'");
-		 return result.next();
+			ResultSet result= statement.executeQuery("Select * from login where email='"+email+"' and password='"+password+"'");
+			return result.next();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return false;
+        return false;
 	}
 
 	@Override
-	public ResultSet getUserByEmail(String email) {
-		try {
-			 ResultSet result = stmnt.executeQuery("select * from user where email='"+email+"'");
-			 
-			 return result;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-	}
-
-	public void createRegistration(String name, String course, String emailId, String mobile, int userId) {
-		try {
-			stmnt.executeUpdate("INSERT INTO registration (name, course, email, mobile, user_id) VALUES ('"+name+"', '"+course+"', '"+emailId+"', '"+mobile+"', '"+userId+"')");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+	public void saveRecord(String name, String email, String mobile) {
+       try {
+		statement.executeUpdate("insert into registration values('"+name+"','"+email+"','"+mobile+"')");
+	} catch (Exception e) {
+       e.printStackTrace();
+	}		
 	}
 
 	@Override
-	public ResultSet getRegistrationsByUser(int userId) {
+	public ResultSet getRegistration() {
 		try {
-			 ResultSet result = stmnt.executeQuery("select * from registration where user_id='"+userId+"'");
-			 
-			 return result;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-	}
-
-	public void deleteRegistration(String email) {
-		try {
-			stmnt.executeUpdate("Delete from registration where email='"+email+"'");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	}
-
-	@Override
-	public ResultSet getRegistrationById(int id) {
-		try {
-			ResultSet result = stmnt.executeQuery("select * from registration where id='"+id+"'");
-			return result;	
+			ResultSet result=statement.executeQuery("select * from registration");
+			return result;
 		} catch (Exception e) {
-				e.printStackTrace();
-			}
+             e.printStackTrace();
+		}
 		return null;
 	}
 
-	public void updateRegistration(int id, String name, String course, String email, String mobile) {
+	public void deleteRegistration(String email) {
+       try {
+		statement.executeUpdate("delete from registration where email='"+email+"'");
+	   } catch (SQLException e) {
+		e.printStackTrace();
+	   }		
+	}
+
+	public void updateRegistration(String email, String mobile) {
 		try {
-			stmnt.executeUpdate("update registration set name='"+name+"', course='"+course+"',email='"+email+"',mobile='"+mobile+"' where id='"+id+"'");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			statement.executeUpdate("update registration set mobile='"+mobile+"' where email='"+email+"'");
+		} catch (Exception e) {
+           e.printStackTrace();
+		}
 	}
 
 }
+
 
 ###########################
 Project - ebs - Iteration 8
@@ -2970,6 +2799,7 @@ JSP Life Cycle
 -> The first method of servlet will execute is init() method. This method will execute only once
 -> Service method(doGet, doPost) these can execute any number of times
 -> When destroy method of the servlet executes, that means servlet life cycle has come to an end
+
 
 
 
